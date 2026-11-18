@@ -1,0 +1,211 @@
+{
+ "_params": {
+  "big_tenant": 1,
+  "mid_tenant": 534,
+  "agent": 24144,
+  "ticket": 4,
+  "page_offset": 2000
+ },
+ "q01_queue_page": {
+  "median_ms": 1.56,
+  "min_ms": 1.48,
+  "max_ms": 1.9,
+  "runs": 7,
+  "rows": 50,
+  "plan": {
+   "execution_ms": 1.57,
+   "planning_ms": 0.15,
+   "nodes": [
+    "Limit",
+    "Index Scan on tickets using tickets_queue"
+   ],
+   "shared_hit": 2063,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 50
+  }
+ },
+ "q02_dashboard_counts": {
+  "median_ms": 18.05,
+  "min_ms": 17.27,
+  "max_ms": 19.87,
+  "runs": 7,
+  "rows": 4,
+  "plan": {
+   "execution_ms": 21.12,
+   "planning_ms": 0.12,
+   "nodes": [
+    "Sort",
+    "Aggregate",
+    "Index Only Scan on tickets using tickets_tenant_created"
+   ],
+   "shared_hit": 47826,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 4
+  }
+ },
+ "q03_my_tickets": {
+  "median_ms": 1.6,
+  "min_ms": 1.3,
+  "max_ms": 2.02,
+  "runs": 7,
+  "rows": 20,
+  "plan": {
+   "execution_ms": 0.07,
+   "planning_ms": 0.21,
+   "nodes": [
+    "Limit",
+    "Index Scan on tickets using tickets_assignee_open"
+   ],
+   "shared_hit": 24,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 20
+  }
+ },
+ "q04_vip_billing_eu": {
+  "median_ms": 341.08,
+  "min_ms": 336.87,
+  "max_ms": 351.05,
+  "runs": 7,
+  "rows": 50,
+  "plan": {
+   "execution_ms": 340.46,
+   "planning_ms": 0.15,
+   "nodes": [
+    "Limit",
+    "Index Scan on tickets using tickets_created"
+   ],
+   "shared_hit": 5120,
+   "shared_read": 41308,
+   "temp_written": 0,
+   "rows": 50
+  }
+ },
+ "q05_ticket_timeline": {
+  "median_ms": 0.32,
+  "min_ms": 0.26,
+  "max_ms": 0.44,
+  "runs": 7,
+  "rows": 7,
+  "plan": {
+   "execution_ms": 0.02,
+   "planning_ms": 0.04,
+   "nodes": [
+    "Index Scan on ticket_events using ticket_events_ticket_created"
+   ],
+   "shared_hit": 5,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 7
+  }
+ },
+ "q06_latest_event": {
+  "median_ms": 0.69,
+  "min_ms": 0.6,
+  "max_ms": 0.94,
+  "runs": 7,
+  "rows": 50,
+  "plan": {
+   "execution_ms": 0.2,
+   "planning_ms": 0.13,
+   "nodes": [
+    "Limit",
+    "Nested Loop",
+    "Index Scan on tickets using tickets_tenant_created",
+    "Limit",
+    "Index Scan on ticket_events using ticket_events_ticket_created"
+   ],
+   "shared_hit": 305,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 50
+  }
+ },
+ "q07_sla_breaches": {
+  "median_ms": 72.09,
+  "min_ms": 68.78,
+  "max_ms": 74.71,
+  "runs": 7,
+  "rows": 4,
+  "plan": {
+   "execution_ms": 93.77,
+   "planning_ms": 0.32,
+   "nodes": [
+    "Aggregate",
+    "Gather Merge",
+    "Sort",
+    "Aggregate",
+    "Hash Join",
+    "Index Only Scan on tickets using tickets_created",
+    "Hash",
+    "Seq Scan on tenants"
+   ],
+   "shared_hit": 257983,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 4
+  }
+ },
+ "q08_monthly_events": {
+  "median_ms": 10244.71,
+  "min_ms": 8029.52,
+  "max_ms": 20302.3,
+  "runs": 7,
+  "rows": 52,
+  "plan": {
+   "execution_ms": 9377.68,
+   "planning_ms": 0.1,
+   "nodes": [
+    "Aggregate",
+    "Gather Merge",
+    "Aggregate",
+    "Sort",
+    "Seq Scan on ticket_events"
+   ],
+   "shared_hit": 949,
+   "shared_read": 235115,
+   "temp_written": 84487,
+   "rows": 52
+  }
+ },
+ "q09_unassigned_urgent": {
+  "median_ms": 2.11,
+  "min_ms": 1.55,
+  "max_ms": 2.77,
+  "runs": 7,
+  "rows": 100,
+  "plan": {
+   "execution_ms": 0.25,
+   "planning_ms": 0.4,
+   "nodes": [
+    "Limit",
+    "Index Scan on tickets using tickets_fires"
+   ],
+   "shared_hit": 102,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 100
+  }
+ },
+ "q10_subject_search": {
+  "median_ms": 1.15,
+  "min_ms": 0.99,
+  "max_ms": 1.62,
+  "runs": 7,
+  "rows": 50,
+  "plan": {
+   "execution_ms": 0.35,
+   "planning_ms": 0.17,
+   "nodes": [
+    "Limit",
+    "Index Scan on tickets using tickets_tenant_created"
+   ],
+   "shared_hit": 283,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 50
+  }
+ }
+}

@@ -1,0 +1,62 @@
+[
+ {
+  "sql": "CREATE INDEX tickets_queue ON tickets (tenant_id, priority, created_at, id) WHERE status IN ('open', 'pending')",
+  "seconds": 5.17,
+  "index": "tickets_queue",
+  "bytes": 28418048
+ },
+ {
+  "sql": "CREATE INDEX tickets_tenant_created ON tickets (tenant_id, created_at) INCLUDE (status)",
+  "seconds": 6.66,
+  "index": "tickets_tenant_created",
+  "bytes": 202792960
+ },
+ {
+  "sql": "DROP INDEX tickets_tenant_id",
+  "seconds": 0.01
+ },
+ {
+  "sql": "CREATE INDEX tickets_assignee_open ON tickets (assignee_id, updated_at DESC) WHERE status <> 'closed'",
+  "seconds": 2.38,
+  "index": "tickets_assignee_open",
+  "bytes": 44195840
+ },
+ {
+  "sql": "CREATE INDEX tickets_attrs ON tickets USING gin (attrs jsonb_path_ops)",
+  "seconds": 4.74,
+  "index": "tickets_attrs",
+  "bytes": 23314432
+ },
+ {
+  "sql": "CREATE INDEX tickets_tags ON tickets USING gin (tags)",
+  "seconds": 2.71,
+  "index": "tickets_tags",
+  "bytes": 9289728
+ },
+ {
+  "sql": "CREATE INDEX ticket_events_ticket_created ON ticket_events (ticket_id, created_at)",
+  "seconds": 29.29,
+  "index": "ticket_events_ticket_created",
+  "bytes": 630652928
+ },
+ {
+  "sql": "DROP INDEX ticket_events_ticket_id",
+  "seconds": 0.01
+ },
+ {
+  "sql": "CREATE INDEX tickets_created ON tickets (created_at) INCLUDE (tenant_id, first_response_at)",
+  "seconds": 24.98,
+  "index": "tickets_created",
+  "bytes": 202506240
+ },
+ {
+  "sql": "CREATE INDEX tickets_fires ON tickets (created_at) WHERE assignee_id IS NULL AND priority = 1 AND status = 'open'",
+  "seconds": 0.61,
+  "index": "tickets_fires",
+  "bytes": 98304
+ },
+ {
+  "sql": "VACUUM ANALYZE",
+  "seconds": 7.11
+ }
+]

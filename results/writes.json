@@ -1,0 +1,26 @@
+{
+ "before-indexes": {
+  "insert_20k_median_ms": 665.1,
+  "runs_ms": [
+   1237.0,
+   665.1,
+   632.3,
+   652.8,
+   1043.7
+  ],
+  "ticket_indexes": 2,
+  "ticket_index_bytes": 152330240
+ },
+ "after-indexes": {
+  "insert_20k_median_ms": 2771.2,
+  "runs_ms": [
+   29446.4,
+   3103.9,
+   1523.7,
+   2348.3,
+   2771.2
+  ],
+  "ticket_indexes": 8,
+  "ticket_index_bytes": 631554048
+ }
+}

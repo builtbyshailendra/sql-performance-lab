@@ -1,0 +1,214 @@
+{
+ "_params": {
+  "big_tenant": 1,
+  "mid_tenant": 534,
+  "agent": 24144,
+  "ticket": 4,
+  "page_offset": 2000,
+  "after_priority": 1,
+  "after_created_at": "2025-12-26T05:45:07.167856+05:30",
+  "after_id": 4828097
+ },
+ "q01_queue_page": {
+  "median_ms": 2.36,
+  "min_ms": 2.21,
+  "max_ms": 2.96,
+  "runs": 7,
+  "rows": 50,
+  "plan": {
+   "execution_ms": 1.64,
+   "planning_ms": 0.17,
+   "nodes": [
+    "Limit",
+    "Index Scan on tickets using tickets_queue"
+   ],
+   "shared_hit": 2063,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 50
+  }
+ },
+ "q02_dashboard_counts": {
+  "median_ms": 25.39,
+  "min_ms": 24.67,
+  "max_ms": 33.88,
+  "runs": 7,
+  "rows": 4,
+  "plan": {
+   "execution_ms": 30.31,
+   "planning_ms": 0.28,
+   "nodes": [
+    "Sort",
+    "Aggregate",
+    "Index Only Scan on tickets using tickets_tenant_created"
+   ],
+   "shared_hit": 47821,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 4
+  }
+ },
+ "q03_my_tickets": {
+  "median_ms": 0.47,
+  "min_ms": 0.42,
+  "max_ms": 0.73,
+  "runs": 7,
+  "rows": 20,
+  "plan": {
+   "execution_ms": 0.04,
+   "planning_ms": 0.1,
+   "nodes": [
+    "Limit",
+    "Index Scan on tickets using tickets_assignee_open"
+   ],
+   "shared_hit": 24,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 20
+  }
+ },
+ "q04_vip_billing_eu": {
+  "median_ms": 579.21,
+  "min_ms": 452.2,
+  "max_ms": 924.51,
+  "runs": 7,
+  "rows": 50,
+  "plan": {
+   "execution_ms": 414.76,
+   "planning_ms": 0.19,
+   "nodes": [
+    "Limit",
+    "Index Scan on tickets using tickets_created"
+   ],
+   "shared_hit": 5120,
+   "shared_read": 41308,
+   "temp_written": 0,
+   "rows": 50
+  }
+ },
+ "q05_ticket_timeline": {
+  "median_ms": 0.78,
+  "min_ms": 0.52,
+  "max_ms": 1.02,
+  "runs": 7,
+  "rows": 7,
+  "plan": {
+   "execution_ms": 0.03,
+   "planning_ms": 0.08,
+   "nodes": [
+    "Index Scan on ticket_events using ticket_events_ticket_created"
+   ],
+   "shared_hit": 5,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 7
+  }
+ },
+ "q06_latest_event": {
+  "median_ms": 1.51,
+  "min_ms": 0.83,
+  "max_ms": 3.93,
+  "runs": 7,
+  "rows": 50,
+  "plan": {
+   "execution_ms": 0.23,
+   "planning_ms": 0.14,
+   "nodes": [
+    "Limit",
+    "Nested Loop",
+    "Index Scan on tickets using tickets_tenant_created",
+    "Limit",
+    "Index Scan on ticket_events using ticket_events_ticket_created"
+   ],
+   "shared_hit": 305,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 50
+  }
+ },
+ "q07_sla_breaches": {
+  "median_ms": 90.71,
+  "min_ms": 78.44,
+  "max_ms": 110.98,
+  "runs": 7,
+  "rows": 4,
+  "plan": {
+   "execution_ms": 106.16,
+   "planning_ms": 0.41,
+   "nodes": [
+    "Aggregate",
+    "Gather Merge",
+    "Sort",
+    "Aggregate",
+    "Hash Join",
+    "Index Only Scan on tickets using tickets_created",
+    "Hash",
+    "Seq Scan on tenants"
+   ],
+   "shared_hit": 257871,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 4
+  }
+ },
+ "q08_monthly_events": {
+  "median_ms": 10245.05,
+  "min_ms": 7828.54,
+  "max_ms": 13185.52,
+  "runs": 7,
+  "rows": 52,
+  "plan": {
+   "execution_ms": 9164.96,
+   "planning_ms": 0.1,
+   "nodes": [
+    "Aggregate",
+    "Gather Merge",
+    "Aggregate",
+    "Sort",
+    "Seq Scan on ticket_events"
+   ],
+   "shared_hit": 949,
+   "shared_read": 235115,
+   "temp_written": 84489,
+   "rows": 52
+  }
+ },
+ "q09_unassigned_urgent": {
+  "median_ms": 0.67,
+  "min_ms": 0.48,
+  "max_ms": 0.86,
+  "runs": 7,
+  "rows": 100,
+  "plan": {
+   "execution_ms": 0.08,
+   "planning_ms": 0.13,
+   "nodes": [
+    "Limit",
+    "Index Scan on tickets using tickets_fires"
+   ],
+   "shared_hit": 102,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 100
+  }
+ },
+ "q10_subject_search": {
+  "median_ms": 1.61,
+  "min_ms": 1.29,
+  "max_ms": 2.29,
+  "runs": 7,
+  "rows": 50,
+  "plan": {
+   "execution_ms": 0.47,
+   "planning_ms": 0.24,
+   "nodes": [
+    "Limit",
+    "Index Scan on tickets using tickets_tenant_created"
+   ],
+   "shared_hit": 283,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 50
+  }
+ }
+}

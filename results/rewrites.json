@@ -1,0 +1,50 @@
+{
+ "_params": {
+  "big_tenant": 1,
+  "mid_tenant": 534,
+  "agent": 24144,
+  "ticket": 4,
+  "page_offset": 2000,
+  "after_priority": 1,
+  "after_created_at": "2025-12-26T05:45:07.167856+05:30",
+  "after_id": 4828097
+ },
+ "q01_queue_page": {
+  "median_ms": 0.56,
+  "min_ms": 0.48,
+  "max_ms": 0.7,
+  "runs": 7,
+  "rows": 50,
+  "plan": {
+   "execution_ms": 0.07,
+   "planning_ms": 0.14,
+   "nodes": [
+    "Limit",
+    "Index Scan on tickets using tickets_queue"
+   ],
+   "shared_hit": 54,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 50
+  }
+ },
+ "q04_vip_billing_eu": {
+  "median_ms": 0.98,
+  "min_ms": 0.78,
+  "max_ms": 1.18,
+  "runs": 7,
+  "rows": 50,
+  "plan": {
+   "execution_ms": 0.44,
+   "planning_ms": 0.27,
+   "nodes": [
+    "Limit",
+    "Index Only Scan on tickets using tickets_vip_newest"
+   ],
+   "shared_hit": 747,
+   "shared_read": 0,
+   "temp_written": 0,
+   "rows": 50
+  }
+ }
+}

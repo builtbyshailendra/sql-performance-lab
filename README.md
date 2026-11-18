@@ -43,3 +43,29 @@ Two old indexes were dropped as redundant (`tickets(tenant_id)` is the prefix of
 **Why q04 ignored its GIN indexes.** The planner's estimate was good (6,281 matches predicted, 5,243 real). It chose to walk the newest-first `created_at` index and stop after 50 matches, expecting about 40,000 rows; it read 45,974, each a random row fetch: 341 ms. Forcing the GIN path (a `MATERIALIZED` CTE) gave 181 ms with identical rows, but the real cost is the same in both: thousands of matching rows scattered across the table. Step 3 fixes it with a partial covering index on the selective condition (VIP is 2% of tickets).
 
 The `shared read` counts in the plans are pages not in PostgreSQL's 128 MB buffer pool; most came from the operating system's file cache, which is why 138,000 "reads" took 600 ms rather than minutes.
+
+### Step 3: query rewrites and two application patterns
+
+Every rewrite in `queries_fixed/` is tested to return exactly the original's rows (`tests/test_queries.py`, on the small copy), and the pattern experiments check the same on the full data.
+
+| Query | Before (baseline) | With step 2 index only | Rewrite | After |
+|---|---|---|---|---|
+| q01 queue page | 606 ms | 1.6 ms | **keyset pagination** with `id` as a final tie-breaker | **0.56 ms** |
+| q04 VIP billing EU | 1,158 ms | 341 ms | the VIP condition stated on its own, plus a partial covering index `(created_at DESC) INCLUDE (id, subject, attrs, tags) WHERE attrs @> '{"vip": true}'` (19 MB) | **0.98 ms** (index-only scan) |
+
+Why q04 needed the rewrite: PostgreSQL can't prove that `attrs @> '{"vip": true, "region": "eu"}'` implies `attrs @> '{"vip": true}'`, so a partial index on the second is only used when the query says exactly that. With the index present, the original wording still took 342 ms.
+
+**Pagination depth** (`lab/patterns.py`; the big tenant's queue is 55,042 tickets; both versions use the same index; rows identical at every depth):
+
+| Page (50 per page) | `OFFSET` | keyset |
+|---|---|---|
+| 1 | 0.44 ms | 0.46 ms |
+| 41 | 1.75 ms | 0.55 ms |
+| 401 | 144 ms | 0.52 ms |
+| 1,100 (last) | **376 ms** | **0.44 ms** |
+
+`OFFSET` reads and throws away every row before the page, so it gets slower the deeper you go; keyset seeks straight to "after the last row you saw". The tie-breaker matters for correctness too: with `ORDER BY priority, created_at` alone, two tickets with the same values can land on either side of a page boundary, so `OFFSET` paging can skip or repeat them. The cost: no "jump to page 700", only next/previous.
+
+**N+1**: 50 tickets then one query per ticket for the requester's name (51 queries) took **6.3 ms** on localhost; one `JOIN` took **1.4 ms**. Over a network each extra round trip adds its latency, so with 1 ms between app and database the 51-query version would be roughly 57 ms.
+
+**Unused indexes.** `pg_stat_user_indexes` showed the two GIN indexes from step 2 were scanned only by my own experiments, never by the workload, so they were dropped (`sql/rewrites.sql`). Inserting 20,000 tickets: 2,771 ms with them, 2,317 ms without (median of 5; the runs ranged 1,642–2,787 ms, so treat it as "somewhat better"). The same view shows a cost no query plan does: 5.3 million `tenants_pkey` and 10 million `users_pkey` lookups, the foreign-key checks made while the data was inserted.

@@ -1,0 +1,12 @@
+[
+ {
+  "sql": "CREATE INDEX tickets_vip_newest ON tickets (created_at DESC) INCLUDE (id, subject, attrs, tags) WHERE attrs @> '{\"vip\": ",
+  "seconds": 5.52,
+  "index": "tickets_vip_newest",
+  "bytes": 19808256
+ },
+ {
+  "sql": "VACUUM ANALYZE",
+  "seconds": 12.81
+ }
+]

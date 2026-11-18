@@ -1,0 +1,40 @@
+{
+ "pagination": [
+  {
+   "page": 1,
+   "offset": 0,
+   "offset_ms": 0.44,
+   "keyset_ms": 0.46,
+   "same_rows": true
+  },
+  {
+   "page": 41,
+   "offset": 2000,
+   "offset_ms": 1.75,
+   "keyset_ms": 0.55,
+   "same_rows": true
+  },
+  {
+   "page": 401,
+   "offset": 20000,
+   "offset_ms": 143.97,
+   "keyset_ms": 0.52,
+   "same_rows": true
+  },
+  {
+   "page": 1100,
+   "offset": 54950,
+   "offset_ms": 376.3,
+   "keyset_ms": 0.44,
+   "same_rows": true
+  }
+ ],
+ "n_plus_1": {
+  "queries": 51,
+  "n_plus_1_ms": 6.3,
+  "join_ms": 1.39,
+  "same_rows": true,
+  "note": "localhost: each round trip is about 0.1 ms; across a network add the round-trip time x 51"
+ },
+ "queue_length": 55042
+}

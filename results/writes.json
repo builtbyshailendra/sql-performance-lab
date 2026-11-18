@@ -22,5 +22,17 @@
   ],
   "ticket_indexes": 8,
   "ticket_index_bytes": 631554048
+ },
+ "after-rewrites": {
+  "insert_20k_median_ms": 2317.4,
+  "runs_ms": [
+   2787.1,
+   1641.6,
+   2610.2,
+   2164.5,
+   2317.4
+  ],
+  "ticket_indexes": 7,
+  "ticket_index_bytes": 612728832
  }
 }

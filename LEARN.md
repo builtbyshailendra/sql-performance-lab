@@ -50,13 +50,24 @@ Every index has a price: disk space and slower writes (each insert updates every
 
 ## 4. Explain it without notes
 
-(Filled in with this project's real numbers once the measurements are done.)
+Answer out loud, then check against `README.md` and `results/`.
 
-1. Read the baseline plan for the queue query and say why it's slow.
-2. Why did the composite index's column order matter?
-3. When does PostgreSQL choose a bitmap scan over an index scan?
-4. Why is keyset pagination faster than `OFFSET`, and what does it cost the UI?
-5. What does `Buffers: shared read=...` tell you that timing alone doesn't?
-6. How would you add an index to a 5-million-row table in production without blocking writes?
-7. What is MVCC, and why does a long-running transaction cause bloat?
-8. When would you move a query to DuckDB (or another column store) instead of indexing it?
+1. The queue query took 606 ms with an index on `tenant_id`. Why didn't that index make it fast? (The big tenant has ~850k tickets; the index found them all, then sorted.)
+2. Why is the queue index `(tenant_id, priority, created_at, id) WHERE status IN ('open','pending')` in that order, and why `id` at the end?
+3. Keyset pagination: 0.44 ms on every page vs 376 ms for `OFFSET` on the last one. Why, and what does the UI give up?
+4. q04's GIN indexes were never used. What did the planner do instead, and why was the estimate *not* the problem?
+5. Why did q04 need the query rewritten before the partial index could be used?
+6. Raising `work_mem` from 4 MB to 256 MB made q08 slower (7.8 s → 12.9 s). Explain both reasons.
+7. What are expression statistics, why did they help q08, and why did the month have to be computed in UTC?
+8. Partitioning made q08 only 22% faster but retention 12× faster with 2,600× less WAL. Why the difference?
+9. Inserts got 4.2× slower after indexing. How do you decide which indexes are worth it? How did you find the two to drop?
+10. How do you add an index to a busy 5-million-row table without an outage? What can go wrong with `CONCURRENTLY`?
+11. What is MVCC, and how did one open transaction keep 500,000 dead rows alive?
+12. When would you move a query to DuckDB, a rollup table, or a materialized view instead of indexing it?
+
+## 5. Your turn
+
+1. Add a query of your own (e.g. "tickets updated in the last hour for a tenant"), measure it, fix it, and add a test that the fix returns the same rows.
+2. Try `CREATE STATISTICS ... (dependencies)` on `(tenant_id, attrs->>'region')` and see whether any estimate changes.
+3. Set `random_page_cost = 1.1` (typical for SSDs) and re-run q04's original: does the planner change its mind?
+4. Build the rollup incrementally: a job that aggregates only events newer than the last run.

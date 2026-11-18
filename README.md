@@ -1,8 +1,45 @@
 # sql-performance-lab
 
-A realistic PostgreSQL workload (a multi-tenant help desk: 5 million tickets, about 20 million ticket events) with the slow queries such an app really has, each one diagnosed from its plan and fixed with a measured before and after.
+A realistic PostgreSQL workload (a multi-tenant help desk: 5,000,000 tickets, 20,000,004 ticket events, 3.8 GB) with the slow queries such an app really has. Each one is diagnosed from its plan, fixed, and measured before and after; every rewrite is tested to return exactly the same rows; and the costs of the fixes are measured too.
 
-Status: built step by step, locally. Not published. All data is synthetic and generated deterministically (`setseed(0.42)`).
+PostgreSQL 16 (default settings) · Python 3.12 + psycopg 3 · DuckDB 2.0. Personal learning project, built pairing with Claude Code. All data is synthetic and generated deterministically. Numbers are from an Intel i5-10310U laptop: compare them with each other, not with other machines.
+
+## Results
+
+| Query | Before | After | What fixed it |
+|---|---|---|---|
+| q01 agent's queue, page 41 | 606 ms | **0.56 ms** | partial index in the page's order + keyset pagination |
+| q02 tenant dashboard | 690 ms | 18 ms | composite index with `INCLUDE`: index-only scan |
+| q03 "my tickets" | 668 ms | 1.6 ms | partial index on not-closed tickets |
+| q04 VIP / region / tag filter | 1,158 ms | **0.98 ms** | query states the selective condition + partial covering index (GIN was ignored by the planner) |
+| q06 newest tickets with latest event | 824 ms | 0.69 ms | `(ticket_id, created_at)` index: no sort, no spill |
+| q07 SLA report | 890 ms | 72 ms | covering index on `created_at` |
+| q08 monthly analytics (20M rows) | 8,535 ms | 3,444 ms / 446 ms / **1.9 ms** | expression statistics + partitions / DuckDB on Parquet / a daily rollup |
+| q09 unassigned urgent | 605 ms | 2.1 ms | 0.1 MB partial index |
+| q05, q10 | 0.7 ms, 3.2 ms | untouched | already fine: not everything needs an index |
+
+What the fixes cost, and what else was measured:
+- Inserting 20,000 tickets: 665 ms with 2 indexes → 2,771 ms with 8 → 2,317 ms after dropping two unused ones.
+- Pagination: `OFFSET` takes 376 ms on the last page of a 55,042-ticket queue; keyset takes 0.44 ms on every page.
+- N+1: 51 queries take 6.3 ms on localhost against 1.4 ms for one `JOIN`.
+- Deleting a year of events: `DELETE` 62 s and 2.2 GB of WAL; dropping 13 partitions 5.1 s and 0.8 MB.
+- Adding an index under write load: one insert blocked 10,969 ms (plain); 662 ms worst case (`CONCURRENTLY`).
+- A held snapshot stopped `VACUUM` removing 500,000 dead rows until it ended.
+
+## Try it
+
+```bash
+# PostgreSQL with pg_stat_statements loaded; DSN in LAB_DSN (default 127.0.0.1:5433/sql_lab)
+psql -f sql/schema.sql
+psql -v tenants=2000 -v users=100000 -v tickets=5000000 -v events_per_ticket=4 -f sql/generate.sql   # ~11 min
+python -m lab.run baseline           # measure all ten queries
+python -m lab.apply sql/indexes.sql  # then: python -m lab.run indexes
+python -m lab.patterns               # pagination depth, N+1
+python -m lab.analytics              # q08 four ways
+python -m lab.partitions             # partitions and retention
+python -m lab.ops                    # the two incidents
+python -m pytest                     # correctness on a 20,000-ticket copy
+```
 
 ## Build log
 
@@ -119,3 +156,7 @@ The plain build takes a lock that blocks writes until it's done: on a real table
 | every row updated again, then `VACUUM` | **34.6 MB: the freed space was reused** | 0 |
 
 PostgreSQL's MVCC keeps old row versions while any transaction might still need them, so one forgotten open transaction (an idle session in a pool, a stuck job) lets every busy table grow. `VACUUM` makes the space reusable but doesn't shrink the file (that needs `VACUUM FULL` or `pg_repack`, which rewrite the table). What to watch: `pg_stat_activity` for old `xact_start`, and `idle_in_transaction_session_timeout` to end them.
+
+### Step 6: docs
+
+This README's summary, `LEARN.md` (how to read a plan, which index for which query, production pitfalls, questions with this project's numbers), and an interview brief. Where it stands: 6 local commits, 12 correctness tests passing, every number above saved in `results/`. Not published.

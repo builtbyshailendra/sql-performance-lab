@@ -1,0 +1,46 @@
+{
+ "create_index": {
+  "build_s": 11.1,
+  "inserts": 21,
+  "max_insert_wait_ms": 10969.3,
+  "median_insert_ms": 61.28
+ },
+ "create_index_concurrently": {
+  "build_s": 8.7,
+  "inserts": 76,
+  "max_insert_wait_ms": 661.9,
+  "median_insert_ms": 74.54
+ },
+ "long_transaction_vs_vacuum": {
+  "loaded": {
+   "table_mb": 17.3,
+   "live": 500000,
+   "dead": 0,
+   "free_mb": 0.1
+  },
+  "updated_snapshot_held": {
+   "table_mb": 34.6,
+   "live": 500000,
+   "dead": 500000,
+   "free_mb": 0.1
+  },
+  "vacuumed_snapshot_held": {
+   "table_mb": 34.6,
+   "live": 500000,
+   "dead": 500000,
+   "free_mb": 0.1
+  },
+  "vacuumed_after_commit": {
+   "table_mb": 34.6,
+   "live": 500000,
+   "dead": 0,
+   "free_mb": 17.3
+  },
+  "second_update_reuses_space": {
+   "table_mb": 34.6,
+   "live": 500000,
+   "dead": 0,
+   "free_mb": 17.3
+  }
+ }
+}

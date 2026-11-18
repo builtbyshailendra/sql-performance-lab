@@ -93,3 +93,29 @@ Two details worth explaining in an interview: more memory made it slower (the pl
 | `DETACH PARTITION` + `DROP TABLE` for 13 old months | 5.1 s | 0.8 MB |
 
 The `DELETE` also leaves 6.8 million dead rows for `VACUUM` to clean up, and replicas must replay all 2.2 GB of log. Dropping a partition just removes files. (`DETACH ... CONCURRENTLY` avoids blocking readers while it happens.)
+
+### Step 5: two production incidents, reproduced
+
+`lab/ops.py` (test rows and tables are removed afterwards).
+
+**Adding an index to a busy table.** A writer inserts one ticket every 50 ms while an index on `(updated_at, priority)` is built on the 5-million-row table:
+
+| | Plain `CREATE INDEX` | `CREATE INDEX CONCURRENTLY` |
+|---|---|---|
+| Longest any insert waited | **10,969 ms**: blocked for the whole build | 662 ms |
+| Inserts completed | 21 in ~13 s | 76 |
+| Build time | 11.1 s | 8.7 s |
+
+The plain build takes a lock that blocks writes until it's done: on a real table that's an outage for every write path. `CONCURRENTLY` builds in phases without that lock (the 662 ms was its waits at phase boundaries). It's normally *slower* than a plain build; it was faster here only because the first build had just pulled the table into memory. It also can't run inside a transaction, and a failed one leaves an invalid index to drop.
+
+**A long-running transaction stops cleanup.** 500,000 rows, one connection holding a `REPEATABLE READ` snapshot open while another updates every row (measured with `pgstattuple`):
+
+| | Table size | Dead row versions |
+|---|---|---|
+| loaded | 17.3 MB | 0 |
+| every row updated, old snapshot still open | 34.6 MB | 500,000 |
+| `VACUUM` while the snapshot is still open | 34.6 MB | **500,000: nothing removed** |
+| `VACUUM` after that transaction ended | 34.6 MB (17.3 MB now free) | 0 |
+| every row updated again, then `VACUUM` | **34.6 MB: the freed space was reused** | 0 |
+
+PostgreSQL's MVCC keeps old row versions while any transaction might still need them, so one forgotten open transaction (an idle session in a pool, a stuck job) lets every busy table grow. `VACUUM` makes the space reusable but doesn't shrink the file (that needs `VACUUM FULL` or `pg_repack`, which rewrite the table). What to watch: `pg_stat_activity` for old `xact_start`, and `idle_in_transaction_session_timeout` to end them.

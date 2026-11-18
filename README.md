@@ -69,3 +69,27 @@ Why q04 needed the rewrite: PostgreSQL can't prove that `attrs @> '{"vip": true,
 **N+1**: 50 tickets then one query per ticket for the requester's name (51 queries) took **6.3 ms** on localhost; one `JOIN` took **1.4 ms**. Over a network each extra round trip adds its latency, so with 1 ms between app and database the 51-query version would be roughly 57 ms.
 
 **Unused indexes.** `pg_stat_user_indexes` showed the two GIN indexes from step 2 were scanned only by my own experiments, never by the workload, so they were dropped (`sql/rewrites.sql`). Inserting 20,000 tickets: 2,771 ms with them, 2,317 ms without (median of 5; the runs ranged 1,642–2,787 ms, so treat it as "somewhat better"). The same view shows a cost no query plan does: 5.3 million `tenants_pkey` and 10 million `users_pkey` lookups, the foreign-key checks made while the data was inserted.
+
+### Step 4: the analytics query indexes can't fix
+
+q08 counts 20 million events by month and kind for the last year. It reads most of the table, so no index helps. Four approaches, all returning the identical 52 rows (same UTC cutoff, UTC months; `lab/analytics.py`, `lab/partitions.py`):
+
+| Approach | q08 time | Notes |
+|---|---|---|
+| As configured (`work_mem` 4 MB) | 7,819 ms | 2 parallel workers each sort ~4.5M rows, spilling 84,580 pages to disk |
+| `work_mem` raised to 256 MB | **12,885 ms (slower)** | the planner dropped parallelism: one process sorted 13.4M rows and *still* spilled (337 MB > 256 MB) |
+| **Expression statistics** on the month | **4,365 ms** | the real problem was sorting at all: the planner couldn't estimate distinct months, so it assumed many groups. Told there are ~25, it hashes into 52 groups using 24 KB per worker, no spill |
+| + monthly partitions | 3,444 ms | 13 of 25 partitions scanned (pruning). Without statistics on the partitioned table it was 6,381 ms: same lesson again |
+| Daily rollup table | **1.9 ms** | 2,972 rows instead of 20M; built in 9 s; must be kept current, which is the real cost |
+| DuckDB over Parquet | 446 ms | a column store reads only the two columns needed; the export took a 659 MB CSV to a 158 MB Parquet file |
+
+Two details worth explaining in an interview: more memory made it slower (the planner's cost model changed the plan shape, not just the sort), and statistics can only be defined on an *immutable* expression, so the month had to be computed in UTC, which is also what a multi-region report should do.
+
+**Retention: where partitioning really pays.** Removing everything older than a year (6,826,094 events), each inside a transaction that was rolled back:
+
+| | Time | Write-ahead log |
+|---|---|---|
+| `DELETE ... WHERE created_at < ...` on the plain table | 62.0 s | 2,211 MB |
+| `DETACH PARTITION` + `DROP TABLE` for 13 old months | 5.1 s | 0.8 MB |
+
+The `DELETE` also leaves 6.8 million dead rows for `VACUUM` to clean up, and replicas must replay all 2.2 GB of log. Dropping a partition just removes files. (`DETACH ... CONCURRENTLY` avoids blocking readers while it happens.)

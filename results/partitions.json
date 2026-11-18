@@ -1,0 +1,19 @@
+{
+ "partitions": 25,
+ "copy_s": 69.8,
+ "plain_q08_ms": 4434.7,
+ "partitioned_q08_ms": 6380.8,
+ "partitions_scanned": 13,
+ "same_rows": true,
+ "delete_s": 62.0,
+ "delete_rows": 6826094,
+ "delete_wal_mb": 2211.3,
+ "drop_partitions_ms": 5149.4,
+ "dropped_partitions": 13,
+ "drop_wal_kb": 855.1,
+ "partitioned_q08_with_stats_ms": 3443.6,
+ "partitioned_aggregate_strategies_with_stats": [
+  "Hashed",
+  "Sorted"
+ ]
+}

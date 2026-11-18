@@ -1,0 +1,17 @@
+{
+ "cutoff_utc": "2025-11-18T00:00:00",
+ "postgres_work_mem_4MB_ms": 7818.6,
+ "postgres_work_mem_256MB_ms": 12884.8,
+ "rollup_build_s": 9.0,
+ "rollup_rows": 2972,
+ "rollup_query_ms": 1.9,
+ "export_csv_s": 28.0,
+ "csv_to_parquet_s": 3.2,
+ "csv_mb": 659.1,
+ "parquet_mb": 157.5,
+ "duckdb_ms": 446.1,
+ "identical_results": true,
+ "groups": 52,
+ "postgres_with_expression_statistics_ms": 4365.2,
+ "note": "expression statistics: CREATE STATISTICS ticket_events_month ON (date_trunc('month', created_at AT TIME ZONE 'UTC')) FROM ticket_events; ANALYZE"
+}

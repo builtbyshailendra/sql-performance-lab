@@ -1,5 +1,7 @@
 # sql-performance-lab
 
+[![ci](https://github.com/builtbyshailendra/sql-performance-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/builtbyshailendra/sql-performance-lab/actions/workflows/ci.yml)
+
 A realistic PostgreSQL workload (a multi-tenant help desk: 5,000,000 tickets, 20,000,004 ticket events, 3.8 GB) with the slow queries such an app really has. Each one is diagnosed from its plan, fixed, and measured before and after; every rewrite is tested to return exactly the same rows; and the costs of the fixes are measured too.
 
 PostgreSQL 16 (default settings) · Python 3.12 + psycopg 3 · DuckDB 2.0. Personal learning project, built pairing with Claude Code. All data is synthetic and generated deterministically. Numbers are from an Intel i5-10310U laptop: compare them with each other, not with other machines.
@@ -159,4 +161,4 @@ PostgreSQL's MVCC keeps old row versions while any transaction might still need 
 
 ### Step 6: docs
 
-This README's summary, `LEARN.md` (how to read a plan, which index for which query, production pitfalls, questions with this project's numbers), and an interview brief. Where it stands: 6 local commits, 12 correctness tests passing, every number above saved in `results/`. Not published.
+This README's summary, `LEARN.md` (how to read a plan, which index for which query, production pitfalls, questions with this project's numbers), and an interview brief. Where it stands: 12 correctness tests passing, locally and in CI (badge above; CI checks correctness on the small copy, the timings above are from the laptop), every number above saved in `results/`. Published 20 Nov 2026.

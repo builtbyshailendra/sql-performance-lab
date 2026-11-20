@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import os
 import statistics
+import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
@@ -26,7 +27,9 @@ import psycopg
 
 from lab.run import DSN, ROOT
 
-WORK = Path(os.environ.get("LAB_WORK", "D:/cache/sql-lab-work"))
+# big intermediate files: drive D on the laptop this was built on, the temp dir elsewhere
+WORK = Path(os.environ.get("LAB_WORK", "D:/cache/sql-lab-work" if os.path.isdir("D:/") else
+                           os.path.join(tempfile.gettempdir(), "sql-lab-work")))
 
 PG_Q = """
 SELECT date_trunc('month', created_at AT TIME ZONE 'UTC') AS month, kind, count(*) AS n

@@ -8,6 +8,7 @@ queries/ returns, for the same parameters.
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -18,7 +19,7 @@ from lab.run import params
 
 ROOT = Path(__file__).resolve().parents[1]
 PG = os.environ.get("TEST_PG", "postgresql://postgres@127.0.0.1:5433")
-PSQL = os.environ.get("PSQL", "D:/DB/bin/psql.exe")
+PSQL = os.environ.get("PSQL") or shutil.which("psql") or "D:/DB/bin/psql.exe"
 DB = "sql_lab_test"
 
 
